@@ -35,7 +35,7 @@ class SignaturePad extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {base64DataUrl: props.dataURL || null};
+    this.state = {base64DataUrl: props.dataURL || null, key: 1};
     const { backgroundColor } = StyleSheet.flatten(props.style);
     var injectedJavaScript = injectedExecuteNativeFunction
       + injectedErrorHandler
@@ -43,6 +43,19 @@ class SignaturePad extends Component {
       + injectedApplication(props.penColor, backgroundColor, props.dataURL);
     var html = htmlContent(injectedJavaScript);
     this.source = {html}; //We don't use WebView's injectedJavaScript because on Android, the WebView re-injects the JavaScript upon every url change. Given that we use url changes to communicate signature changes to the React Native app, the JS is re-injected every time a stroke is drawn.
+  }
+
+  clear() {
+    const {backgroundColor} = StyleSheet.flatten(this.props.style);
+    var injectedJavaScript = injectedExecuteNativeFunction
+        + injectedErrorHandler
+        + injectedSignaturePad
+        + injectedApplication(this.props.penColor, backgroundColor, null);
+    var html = htmlContent(injectedJavaScript);
+    this.source = {html};
+    this.setState({
+      key: this.state.key + 1
+    })
   }
 
   _onNavigationChange = (args) => {
@@ -116,6 +129,7 @@ class SignaturePad extends Component {
   };
 
   render = () => {
+    console.log("Pad Render");
     return (
         <WebView automaticallyAdjustContentInsets={false}
                  onNavigationStateChange={this._onNavigationChange}
@@ -123,6 +137,7 @@ class SignaturePad extends Component {
                  renderLoading={this._renderLoading}
                  source={this.source}
                  javaScriptEnabled={true}
+                 key={this.state.key}
                  style={this.props.style}/>
     )
   };
